@@ -2,33 +2,33 @@
 This repository contains the data and scripts (Python 3.7, R 4.0) that were used in the sputum microbiome by Mirhakkak et al. (2022).
 
 ### depened R packages
-- pacman
-- tidyverse
-- phyloseq
-- reshape2
-- ape
-- grid
-- magrittr
-- phylosmith
-- parallel
-- DGCA
-- MEGENA
-- ggpubr
-- caret
-- circlize
-- ComplexHeatmap
-- imbalance
-- MUVR
-- VSURF
-- Boruta
-- mixOmics
-- doParallel
+- pacman(0.5.1)
+- tidyverse(1.3.1)
+- phyloseq(1.34)
+- reshape2(1.4.4)
+- ape(5.6)
+- grid(4.0.5)
+- magrittr(2.0.2)
+- phylosmith(1.0.6)
+- parallel(4.0.5)
+- DGCA(2.0.0)
+- MEGENA(1.3.7)
+- ggpubr(0.4.0)
+- caret(6.0)
+- circlize(0.4.13)
+- ComplexHeatmap(2.6.2)
+- imbalance(1.0.2.1)
+- MUVR(0.0.973)
+- VSURF(1.1.0)
+- Boruta(7.0.0)
+- mixOmics(6.8.5)
+- doParallel(1.0.16)
 
 ### dependent python packages
-- pandas
-- pycaret
-- imblearn
-- sklearn
+- pandas(1.3.1)
+- pycaret(2.3.2)
+- imbalanced-learn(0.7.0)
+- scikit-learn(0.23.2)
 
 ### data
 - growth_rate.csv --> the growth rate data of aspergillus_fumigatus for fig4B.
