@@ -1,7 +1,7 @@
 library(pacman)
 p_load(tidyverse,ggpubr)
 
-gr_df <- read_csv("../data/fba_kraken.csv")
+gr_df <- read_csv("../data/growth_rate.csv")
 gr_plot_df <- gr_df %>% filter(group=="clinical") %>% filter(cohort != "neg") %>% arrange(cohort, isolate_name) %>%dplyr::select(subset=c("growth_rate","cohort"))
 colnames(gr_plot_df) <- c("growh_rate","cohort")
 p <- wilcox.test(gr_plot_df$growh_rate[1:49],gr_plot_df$growh_rate[50:98], paired = T)$p.value
@@ -17,4 +17,4 @@ gr_plot<- ggplot(gr_plot_df, aes(x = cohort, y = `growh_rate`)) +
   coord_cartesian(ylim = c(12 ,18))
 
 g <- ggarrange(gr_plot,ncol=1,nrow = 1)
-ggsave("growth_rate.pdf", width=8, height = 10,gr_plot)
+ggsave("fig4B.pdf", width=8, height = 10,gr_plot)

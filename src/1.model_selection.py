@@ -3,7 +3,6 @@ import pandas as pd
 from pycaret.classification import *
 from imblearn.over_sampling import *
 from sklearn.model_selection import RepeatedKFold
-import matplotlib.pyplot as plt
 #%%
 n_jobs = 60
 X = pd.read_csv("X.csv")

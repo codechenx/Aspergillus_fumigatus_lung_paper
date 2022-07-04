@@ -8,13 +8,13 @@ library(Boruta)
 library(mixOmics)
 
 #Loading data
-dataset1 <- read_csv('../data/min_fva_whole_v6_fastcc_95_afm_mm_media.csv')
-dataset2 <- read_csv('../datanovel_fva_with_followings/max_fva_whole_v6_fastcc_95_afm_mm_media.csv')
+dataset1 <- read_csv('') # load flux ranges data to support fungal growth simulated with FVA on MAMBO derived media.
+dataset2 <- read_csv('') #  load flux ranges to support fungal growth simulated with FVA on MAMBO derived media.
 dataset1$X1 <- paste("min_",dataset1$X1, sep="")
 dataset2$X1 <- paste("max_",dataset2$X1, sep="")
 dataset <- rbind(dataset1,dataset2)
 dataset <- dataset %>% mutate(across(everything(), .fns = ~replace_na(.,0))) 
-groups <- read_csv('../data/novel_fva_with_followings/df_groups_fit_fva_whole_fastcc_v6_95_afm_mm_media.csv')
+groups <- read_csv('') # load group data
 
 #Filter variables
 dataset <- dataset %>% filter(!grepl('^DM',X1)) %>% filter(!grepl('formation',X1)) %>% filter(!grepl('Growth',X1)) %>% drop_na()

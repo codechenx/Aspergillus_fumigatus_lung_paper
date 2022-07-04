@@ -1,7 +1,7 @@
 library(pacman)
 p_load(tidyverse,phyloseq,reshape2,ape,grid,magrittr,phylosmith,parallel,DGCA,MEGENA)
 
-metaphlan_df <- read_tsv('kraken_table.tsv')
+metaphlan_df <- read_tsv('../data/kraken_table.tsv')
 metaphlan_df %<>% filter(grepl("Bacteria",taxon)) %>% filter(grepl("\\|s_",taxon))
 metaphlan_df %<>% as.data.frame
 species <- str_split(metaphlan_df$taxon, "\\|s__")
@@ -10,7 +10,7 @@ rownames(metaphlan_df) <- species
 metaphlan_df$taxon <- NULL
 tax_indicater <- sweep(metaphlan_df,2,colSums(metaphlan_df),`/`)
 #metaphlan_df[tax_indicater<0.1]=0
-meta_df <- read_csv('final_Afumigatus_censored_data.csv')
+meta_df <- read_csv('../data/meta_data.csv')
 meta_df <- meta_df %>% arrange("clinic_id","cohort")
 meta_df <- as.data.frame(meta_df)
 meta_df <-  meta_df[c("Ifd.Nummer", "cohort","Age", "BMI","gender","clinic_id","Mutation class of allele 1","Mutation class of allele 2" )]

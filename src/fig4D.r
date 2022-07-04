@@ -1,12 +1,11 @@
 library(tidyverse)
-library(caret)
 library(circlize)
 library(ComplexHeatmap)
-library(ggvenn)
-
-## select signif for rxns based on min OR max
+library(ggpubr)
 
 #Loading data
+selected_rxn_df <- read_csv("../data/rxns4bp_220327.csv")
+
 filter_df <- read_tsv("../data/rxnIDsSignKoModules_220318.tsv")
 pos_max_dataset <- read.csv('../data/max_fva_whole_v6_fastcc_95_pos_kraken_final.csv')
 rownames(pos_max_dataset) <- paste0("max_",pos_max_dataset$Metabolite)
@@ -24,6 +23,9 @@ before_min_dataset$Metabolite<- NULL
 max_dataset <- cbind(before_max_dataset,pos_max_dataset) %>% t %>% as.data.frame()
 min_dataset <- cbind(before_min_dataset,pos_min_dataset) %>% t %>% as.data.frame()
 
+
+
+# calculate p value
 max_dataset_p <- data.frame()
 for (metabolite in colnames(max_dataset)){
   wilcox_df <- max_dataset[metabolite]
@@ -64,33 +66,34 @@ for (metabolite in colnames(min_dataset)){
 min_dataset_p$adjp <- p.adjust(min_dataset_p$p, "fdr")
 min_dataset_p$difffc <- abs(min_dataset_p$fold_change-1)
 
-significant_max_dataset_p <- max_dataset_p[max_dataset_p$adjp<0.05&max_dataset_p$difffc>0.2,]
-significant_max <- significant_max_dataset_p$metabolite
-significant_min_dataset_p <- min_dataset_p[min_dataset_p$adjp<0.05&min_dataset_p$difffc>0.2,]
-significant_min <- significant_min_dataset_p$metabolite
-significant_overlap <- union(gsub("max_","", significant_max),gsub("min_","", significant_min))
-both_overlap <- intersect(significant_overlap, filter_df$ID_old)
+selected_rxn_final <- c("R1965","R1838","R153")
+selected_rxn__final_name <- c("EC 4.1.3.27","EC 4.2.1.51","EC 1.8.1.9")
 
-min_dataset_p_selected <- min_dataset_p %>% filter(metabolite %in% paste0("min_",both_overlap)) %>% arrange(metabolite)
-max_dataset_p_selected <-  max_dataset_p %>% filter(metabolite %in% paste0("max_",both_overlap))%>% arrange(metabolite)
+# plot boxplot
+plots = NULL
+for(i in 1:2){
+for(scale in 1:length(selected_rxn_final)) {
+        rxn_df <- filter_df %>% filter(ID_new == selected_rxn_final[scale]) 
+        rxn <-rxn_df %>% pull(ID_old)
+        if(i==1){
+          rxn_name <- paste0("min_",rxn)
+          p <- min_dataset_p %>% filter(metabolite == rxn_name) %>% pull(adjp)
+          plot_df <- min_dataset[rxn_name]
+        }else{
+          rxn_name <- paste0("max_",rxn)
+          p <- max_dataset_p %>% filter(metabolite == rxn_name) %>% pull(adjp)
+          plot_df <- max_dataset[rxn_name]
+        }
+        plot_df$Cohort <- rep(c("before","pos"), each=49)
+        plot_df$connect <- c(1:49,1:49)
+        plots[[3*(i-1) + scale]] = ggplot(plot_df, aes_(x=as.name("Cohort"), y=as.name(rxn_name))) + geom_boxplot(aes(fill = Cohort))+geom_line(aes(group=connect), position = position_dodge())+geom_point(aes(fill=Cohort,group=connect),size=3,shape=21)+scale_fill_manual(labels = c(expression(italic("A.fumigatus -")), expression(italic("A.fumigatus +"))),values=c("#56B4E9","#E69F00"))+
+  theme_pubr()  +annotate(geom = "text",label = paste("p =",formatC(p,3)),size=8,x=1.5,y=max(na.omit(plot_df[rxn_name]))*1.2)+
+  theme(plot.title = element_text(size = 26, hjust = 0.5),  text = element_text(size = 24), legend.title = element_blank() , axis.text.x=element_blank(),axis.line = element_line(colour = 'black', size = 1),axis.ticks = element_line(colour = "black", size = 1),axis.ticks.length=unit(.2, "cm"),axis.text=element_text(size=20),
+        legend.key.size = unit(2.3, "cm"),legend.text=element_text(size=24),legend.position = "none") +
+  xlab(element_blank())+ylab(selected_rxn__final_name[scale])  }
+}
+plots <- list(plots[[1]]+ylim(-0.05, 0.05),plots[[4]]+ylab(""),plots[[2]]+ylim(-300, 0),plots[[5]]+ylab(""),plots[[3]],plots[[6]]+ylab(""))
+g <- ggarrange(plotlist=plots,ncol=2,nrow = 3,align="hv")
 
-s1 <- max_dataset_p_selected[max_dataset_p_selected$adjp < min_dataset_p_selected$adjp,]
-s2 <- min_dataset_p_selected[max_dataset_p_selected$adjp >= min_dataset_p_selected$adjp,]
-
-
-dataset <- cbind(max_dataset[s1$metabolite], min_dataset[s2$metabolite])
-
-preprocessParams <- preProcess(dataset, method=c("range"),rangeBounds=c(-1,1))
-dataset <- predict(preprocessParams, dataset)
-heatmap_mat<- dataset %>%  t%>% as.matrix
-
-colnames(heatmap_mat) <- paste0("s",c(1:49,1:49))
-rownames(heatmap_mat) <- NULL
-col_ha = HeatmapAnnotation(Group =  rep(c("A.fumigatus -","A.fumigatus +"),each=49),col = list(Group = c("A.fumigatus -" = "#56B4E9", "A.fumigatus +" = "#E69F00")))
-row_ha = rowAnnotation(Bound =  c(rep("Upper bound",dim(s1)[1]),rep("Lower bound",dim(s2)[1])),col = list(Group = c("Upper bound" = "blud", "Lower bound" = "green")))
-
-pdf(file="fig4C.pdf",width=14, height=10)
-group_mat <- c(rep("A.fumigatus -",49),rep("A.fumigatus +",49))
-ht <- Heatmap(heatmap_mat,colorRamp2(c(-1, 0, 1), c("blue", "#EEEEEE", "red")), top_annotation = col_ha,right_annotation = row_ha,column_title = NULL,  column_split= c(rep("A.fumigatus -",49),rep("A.fumigatus +",49)),row_gap = unit(2, "mm"),height = unit(18, "cm"),heatmap_legend_param = list(title="Normalized value"),row_title_gp = gpar(fontsize = 20))
-draw(ht, heatmap_legend_side = "right", annotation_legend_side = "right")
-dev.off()
+ggsave("fig4D.pdf", width =8, height = 10,g)
+```
